@@ -9,11 +9,12 @@ namespace CardFool
     internal class MPlayer1
     {
         private string name = "Vasya";
+        private int counter = 0;
         private List<SCard> hand = new List<SCard>();       // карты на руке
 
         // Возвращает имя игрока
         public string GetName()
-        { 
+        {
             return name;
         }
 
@@ -26,13 +27,13 @@ namespace CardFool
         public void AddToHand(SCard card)
         {
             hand.Add(card);
+            counter++;
         }
 
         // Сделать ход (первый)
         public List<SCard> LayCards()
         {
-            List < SCard > cards = new List < SCard >();
-            cards.Add(hand[0]);
+            List<SCard> cards = [hand[0]];
             hand.Remove(hand[0]);
             return cards;
         }
@@ -43,10 +44,12 @@ namespace CardFool
         {
             Suits suit;
             int rank;
+            SCard trump = MTable.GetTrump();
             bool answer = false;
 
-            foreach (SCardPair pair in table)
+            for (int i = 0; i < table.Count; i++)
             {
+                SCardPair pair = table[i];
                 if (pair.Beaten) continue;
 
                 suit = pair.Down.Suit;
@@ -55,15 +58,18 @@ namespace CardFool
                 foreach (SCard card in hand)
                 {
                     if ((card.Suit == suit && card.Rank > rank)
-                        || (card.Suit == MTable.GetTrump().Suit && card.Rank > rank))
+                        || (card.Suit == trump.Suit && card.Rank > rank))
                     {
-                        answer = pair.SetUp(pair.Up, MTable.GetTrump().Suit);
-                        hand.Remove(card);
-                        return answer;
+                        answer = pair.SetUp(card, trump.Suit);
+                        if (answer)
+                        {
+                            table[i] = pair;
+                            hand.Remove(card);
+                            return answer;
+                        }
                     }
                 }
             }
-
             return answer;
         }
 
@@ -71,10 +77,20 @@ namespace CardFool
         // На вход подаются карты на столе
         public bool AddCards(List<SCardPair> table)
         {
-            if (hand.Count > 0) return true;
+            if (counter <= 15 || hand.Count <= 10) return false;
+
+            foreach (SCard card in hand) 
+            {
+                if (card.Suit != MTable.GetTrump().Suit && card.Rank < 9)
+                {
+                    table.Add(new SCardPair(card));
+                    hand.Remove(card);
+                    return true;
+                }
+            }
             return false;
         }
-        
+
         // Вывести в консоль карты на руке
         public void ShowHand()
         {
