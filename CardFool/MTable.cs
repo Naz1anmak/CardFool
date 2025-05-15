@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
-namespace CardFool
+﻿namespace CardFool
 {
     public struct SCard     // карта
     {
@@ -10,7 +6,7 @@ namespace CardFool
         private int _rank;    // величина, от 6 до 14
 
         public SCard(Suits suit, int rank)
-        { 
+        {
             _suit = suit;
             _rank = rank;
         }
@@ -71,8 +67,8 @@ namespace CardFool
         }
     }
     // Результат игры
-    public enum EndGame {First, Second, Draw};
-    public enum Suits { Hearts, Diamonds, Clubs, Spades};   // черви, бубны, крести, пики
+    public enum EndGame { First, Second, Draw };
+    public enum Suits { Hearts, Diamonds, Clubs, Spades };   // черви, бубны, крести, пики
 
 
     internal class MTable
@@ -112,7 +108,7 @@ namespace CardFool
             // создаем полную колоду карт
             for (int c = 0; c <= 3; c++)
                 for (int d = 6; d <= 14; d++)
-                { 
+                {
                     SCard card = new SCard((Suits)c, d);
                     temp.Add(card);
                 }
@@ -158,7 +154,7 @@ namespace CardFool
             bool playerFirst = true;
             bool defend, added = true;
             List<SCardPair> tempTable = new List<SCardPair>();
-            
+
             // процесс игры
             while (true)
             {
@@ -177,11 +173,11 @@ namespace CardFool
                     table.Add(new SCardPair(cards[0]));
                     cards.RemoveAt(0);
                 }
-               
+
                 //************************
                 Console.WriteLine("Делаем ход");
                 ShowTable(table);
-                
+
                 // ==== Начало хода ====
                 // процесс защиты и подкидывания карт
                 while (true)
@@ -248,7 +244,7 @@ namespace CardFool
                             break;          // окончание хода
                         }
                         // если не подкинули, то окончание хода
-                        if (!added) break;  
+                        if (!added) break;
                     }
                 }
                 // ==== Конец хода ====
@@ -267,7 +263,7 @@ namespace CardFool
 
                 // Добавляем игрокам карты из колоды
                 AddCards(playerFirst);
-                if(defend) playerFirst = !playerFirst;
+                if (defend) playerFirst = !playerFirst;
 
                 //***********************************
                 Console.WriteLine();
@@ -280,7 +276,7 @@ namespace CardFool
                 else if (player1.GetCount() == 0) return EndGame.First;
                 else if (player2.GetCount() == 0) return EndGame.Second;
             }
-            
+
         }
         // Добавляем карты из колоды первому и второму игроку
         private static void AddCards(bool first)
@@ -355,8 +351,8 @@ namespace CardFool
         public static void ShowCard(SCard card)
         {
             string msg = "";
-            if((int)card.Suit < 2) Console.ForegroundColor = ConsoleColor.Red;
-            switch(card.Suit) 
+            if ((int)card.Suit < 2) Console.ForegroundColor = ConsoleColor.Red;
+            switch (card.Suit)
             {
                 case Suits.Hearts:
                     msg = "ч";
@@ -405,8 +401,8 @@ namespace CardFool
             Console.ForegroundColor = ConsoleColor.White;
         }
         public static void ShowTable(List<SCardPair> table)
-        { 
-            foreach(SCardPair pair in table) 
+        {
+            foreach (SCardPair pair in table)
             {
                 if (pair.Beaten) ShowCard(pair.Up);
                 else Console.Write("  ");
@@ -421,6 +417,6 @@ namespace CardFool
             Console.WriteLine();
             if (pause) Console.ReadLine();
         }
-        
+
     }
 }

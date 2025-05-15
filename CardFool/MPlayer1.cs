@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CardFool
+﻿namespace CardFool
 {
     internal class MPlayer1
     {
@@ -33,43 +27,66 @@ namespace CardFool
         // Сделать ход (первый)
         public List<SCard> LayCards()
         {
-            List<SCard> cards = [hand[0]];
-            hand.Remove(hand[0]);
-            return cards;
+            SCard sCard = MinCurrentCard(hand);
+            hand.Remove(sCard);
+            return new List<SCard> { sCard };
         }
 
         // Отбиться.
         // На вход подается набор карт на столе, часть из них могут быть уже покрыты
         public bool Defend(List<SCardPair> table)
         {
-            Suits suit;
-            int rank;
-            SCard trump = MTable.GetTrump();
+            Suits trumpSuit = MTable.GetTrump().Suit;
             bool answer = false;
+            SCardPair newPair;
+            
 
             for (int i = 0; i < table.Count; i++)
             {
                 SCardPair pair = table[i];
                 if (pair.Beaten) continue;
 
-                suit = pair.Down.Suit;
-                rank = pair.Down.Rank;
+                Suits suitDown = pair.Down.Suit;
+                int rankDown = pair.Down.Rank;
 
+                if (suitDown == trumpSuit && counter <= 10) return answer;
+
+                List <SCard> validCards = new List<SCard>();
                 foreach (SCard card in hand)
                 {
-                    if ((card.Suit == suit && card.Rank > rank)
-                        || (card.Suit == trump.Suit && card.Rank > rank))
+                    if ((card.Suit == suitDown && card.Rank > rankDown)
+                        || (card.Suit == trumpSuit && suitDown != trumpSuit)
+                        || (card.Suit == trumpSuit && card.Rank > rankDown))
                     {
-                        answer = pair.SetUp(card, trump.Suit);
-                        if (answer)
-                        {
-                            table[i] = pair;
-                            hand.Remove(card);
-                            return answer;
-                        }
+                        validCards.Add(card);
+                        Console.WriteLine($"Кладем карту: {card.Suit} {card.Rank} в список выборки");
+                        //if (card.Suit == trumpSuit && table.Count <= 2)
+                        //{
+                        //    Console.WriteLine($"Наша козырная и на столе меньше 3 карт. Пропускаем");
+                        //    continue;
+                        //}
                     }
                 }
+                if (validCards.Count == 0) continue;
+                Console.WriteLine($"В carts: {validCards.Count}");
+                answer = true;
+
+                SCard myCardUp = MinCurrentCard(validCards);
+                Console.WriteLine($"Минимальная выбранная карта: {myCardUp.Suit} {myCardUp.Rank}");
+
+                //не отбивать козырем в начале игры
+
+                newPair = pair;
+                if (newPair.SetUp(myCardUp, trumpSuit))
+                {
+                    table[i] = newPair;
+
+                    hand.Remove(myCardUp);
+                    Console.WriteLine($"Кладем карту: {myCardUp.Suit} {myCardUp.Rank}. Pair: {table[i].Up.Suit} {table[i].Up.Rank}");
+                    return answer;
+                }
             }
+            Console.WriteLine($"Выходим");
             return answer;
         }
 
@@ -77,9 +94,9 @@ namespace CardFool
         // На вход подаются карты на столе
         public bool AddCards(List<SCardPair> table)
         {
-            if (counter <= 15 || hand.Count <= 10) return false;
+            if (counter <= 15 || hand.Count <= 7) return false;
 
-            foreach (SCard card in hand) 
+            foreach (SCard card in hand)
             {
                 if (card.Suit != MTable.GetTrump().Suit && card.Rank < 9)
                 {
@@ -101,6 +118,41 @@ namespace CardFool
                 Console.Write(MTable.Separator);
             }
             Console.WriteLine();
+        }
+
+        private SCard MinCurrentCard (List <SCard> cards)
+        {
+            List<SCard> selectedList = cards.ToList();
+            int minRank = 15;
+            SCard cardForPlay = new SCard(0, 0);
+
+            foreach (SCard card in selectedList)
+            {
+                if (card.Suit == MTable.GetTrump().Suit) continue;
+
+                if (card.Rank < minRank)
+                {
+                    minRank = card.Rank;
+                    cardForPlay = card;
+                }
+            }
+
+            if (cardForPlay.Rank == 0)
+            {
+                minRank = 15;
+                foreach (SCard card in selectedList)
+                {
+                    if (card.Suit != MTable.GetTrump().Suit) continue;
+
+                    if (card.Rank < minRank)
+                    {
+                        minRank = card.Rank;
+                        cardForPlay = card;
+                    }
+                }
+            }
+
+            return cardForPlay;
         }
     }
 }
