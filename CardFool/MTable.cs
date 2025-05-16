@@ -350,6 +350,7 @@
         {
             string msg = "";
             if ((int)card.Suit < 2) Console.ForegroundColor = ConsoleColor.Red;
+            if (card.Suit == GetTrump().Suit) Console.ForegroundColor = ConsoleColor.Yellow;
             switch (card.Suit)
             {
                 case Suits.Hearts:

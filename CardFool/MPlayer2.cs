@@ -60,11 +60,25 @@
         // На вход подаются карты на столе
         public bool AddCards(List<SCardPair> table)
         {
-            if (hand.Count > 0 && table.Count < 7)
+            HashSet<int> possibleRangs = new HashSet<int>();
+
+            if (hand.Count == 0 || (table.Count >= 8 && hand.Count >= 5))
+                return false;
+
+            foreach (SCardPair pair in table)
             {
-                table.Add(new SCardPair(hand[0]));
-                hand.Remove(hand[0]);
-                return true;
+                possibleRangs.Add(pair.Down.Rank);
+                if (pair.Beaten) possibleRangs.Add(pair.Up.Rank);
+            }
+
+            foreach (SCard card in hand)
+            {
+                if (possibleRangs.Contains(card.Rank))
+                {
+                    table.Add(new SCardPair(card));
+                    hand.Remove(card);
+                    return true;
+                }
             }
             return false;
         }

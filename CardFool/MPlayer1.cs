@@ -37,9 +37,6 @@
         public bool Defend(List<SCardPair> table)
         {
             Suits trumpSuit = MTable.GetTrump().Suit;
-            bool answer = false;
-            SCardPair newPair;
-
 
             for (int i = 0; i < table.Count; i++)
             {
@@ -49,7 +46,7 @@
                 Suits suitDown = pair.Down.Suit;
                 int rankDown = pair.Down.Rank;
 
-                if (suitDown == trumpSuit && counter <= 10 && hand.Count() <= 7) return answer;
+                if (suitDown == trumpSuit && counter <= 10 && hand.Count() <= 7) return false;
 
                 List<SCard> validCards = new List<SCard>();
                 foreach (SCard card in hand)
@@ -59,75 +56,76 @@
                         || (card.Suit == trumpSuit && card.Rank > rankDown))
                     {
                         validCards.Add(card);
-                        Console.WriteLine($"Кладем карту: {card.Suit} {card.Rank} в список выборки");
                     }
                 }
-                if (validCards.Count == 0) continue;
-                Console.WriteLine($"В carts: {validCards.Count}");
+                if (validCards.Count == 0) return false;
 
                 SCard myCardUp = MinCurrentCard(validCards);
-                Console.WriteLine($"Минимальная выбранная карта: {myCardUp.Suit} {myCardUp.Rank}");
 
-                if (myCardUp.Suit == trumpSuit && counter <= 5)
-                {
-                    Console.WriteLine($"Наша козырная и counter = <= 5. Пропускаем");
-                    continue;
-                }
+                if (myCardUp.Suit == trumpSuit && counter <= 5) return false;
 
-                newPair = pair;
+                SCardPair newPair = pair;
                 if (newPair.SetUp(myCardUp, trumpSuit))
                 {
-                    answer = true;
                     table[i] = newPair;
-
                     hand.Remove(myCardUp);
-                    Console.WriteLine($"Кладем карту: {myCardUp.Suit} {myCardUp.Rank}. Pair: {table[i].Up.Suit} {table[i].Up.Rank}");
-                    return answer;
+                    return true;
                 }
             }
-            Console.WriteLine($"Выходим");
-            return answer;
+            return false;
         }
 
         // Подбросить карты
         // На вход подаются карты на столе
         public bool AddCards(List<SCardPair> table)
         {
-            bool key = false;
+            HashSet<int> possibleRangs = new HashSet<int>();
             List<SCard> validCards = new List<SCard>();
-            SCard selectedCard;
+            SCard selectedCard = new SCard(0, 0);
+            bool key = counter >= 5 && hand.Count <= 5 || counter > 19;
 
-            if (counter >= 19) key = true;
+            if (hand.Count == 0) return false;
+            if (counter <= 4 && hand.Count > 5) return false;
 
-            if (!key && counter <= 8)
+            foreach (SCardPair pair in table)
             {
-                Console.WriteLine($"False. Counter: {counter} <= 8");
-                return false;
+                possibleRangs.Add(pair.Down.Rank);
+                if (pair.Beaten) possibleRangs.Add(pair.Up.Rank);
             }
 
-            if (!key && (counter <= 20 || hand.Count <= 10))
+            if (counter < 19 || hand.Count <= 10)
             {
                 foreach (SCard card in hand)
                 {
-                    if (card.Suit != MTable.GetTrump().Suit)
-                    {
+                    if (card.Suit != MTable.GetTrump().Suit && possibleRangs.Contains(card.Rank))
                         validCards.Add(card);
-                    }
                 }
+                if (validCards.Count() == 0 && hand.Count > 5) return false;
+            }
+
+            if (!key && selectedCard.Rank != 0)
+            {
                 selectedCard = MinCurrentCard(validCards);
                 table.Add(new SCardPair(selectedCard));
                 hand.Remove(selectedCard);
                 return true;
             }
-
-            selectedCard = MinCurrentCard(hand);
-            if (selectedCard.Rank != 0)
+            else
             {
-                table.Add(new SCardPair(selectedCard));
-                hand.Remove(selectedCard);
-                return true;
+                if (counter < 5) return false;
+                foreach (SCard card in hand)
+                {
+                    if (possibleRangs.Contains(card.Rank)) validCards.Add(card);
+                }
+
+                selectedCard = MinCurrentCard(validCards);
+                if (selectedCard.Rank != 0)
+                {
+                    table.Add(new SCardPair(selectedCard));
+                    hand.Remove(selectedCard);
+                    return true;
+                }
             }
-            
             return false;
         }
 
@@ -162,7 +160,6 @@
 
             if (cardForPlay.Rank == 0)
             {
-                minRank = 15;
                 foreach (SCard card in selectedList)
                 {
                     if (card.Suit != MTable.GetTrump().Suit) continue;
@@ -174,7 +171,6 @@
                     }
                 }
             }
-
             return cardForPlay;
         }
     }
