@@ -3,7 +3,7 @@
     internal class MPlayer1
     {
         private string name = "Vasya";
-        private int counter = 0;
+        private int counter = -6;
         private List<SCard> hand = new List<SCard>();       // карты на руке
 
         // Возвращает имя игрока
@@ -39,7 +39,7 @@
             Suits trumpSuit = MTable.GetTrump().Suit;
             bool answer = false;
             SCardPair newPair;
-            
+
 
             for (int i = 0; i < table.Count; i++)
             {
@@ -49,9 +49,9 @@
                 Suits suitDown = pair.Down.Suit;
                 int rankDown = pair.Down.Rank;
 
-                if (suitDown == trumpSuit && counter <= 10) return answer;
+                if (suitDown == trumpSuit && counter <= 10 && hand.Count() <= 7) return answer;
 
-                List <SCard> validCards = new List<SCard>();
+                List<SCard> validCards = new List<SCard>();
                 foreach (SCard card in hand)
                 {
                     if ((card.Suit == suitDown && card.Rank > rankDown)
@@ -60,25 +60,24 @@
                     {
                         validCards.Add(card);
                         Console.WriteLine($"Кладем карту: {card.Suit} {card.Rank} в список выборки");
-                        //if (card.Suit == trumpSuit && table.Count <= 2)
-                        //{
-                        //    Console.WriteLine($"Наша козырная и на столе меньше 3 карт. Пропускаем");
-                        //    continue;
-                        //}
                     }
                 }
                 if (validCards.Count == 0) continue;
                 Console.WriteLine($"В carts: {validCards.Count}");
-                answer = true;
 
                 SCard myCardUp = MinCurrentCard(validCards);
                 Console.WriteLine($"Минимальная выбранная карта: {myCardUp.Suit} {myCardUp.Rank}");
 
-                //не отбивать козырем в начале игры
+                if (myCardUp.Suit == trumpSuit && counter <= 5)
+                {
+                    Console.WriteLine($"Наша козырная и counter = <= 5. Пропускаем");
+                    continue;
+                }
 
                 newPair = pair;
                 if (newPair.SetUp(myCardUp, trumpSuit))
                 {
+                    answer = true;
                     table[i] = newPair;
 
                     hand.Remove(myCardUp);
@@ -94,17 +93,41 @@
         // На вход подаются карты на столе
         public bool AddCards(List<SCardPair> table)
         {
-            if (counter <= 15 || hand.Count <= 7) return false;
+            bool key = false;
+            List<SCard> validCards = new List<SCard>();
+            SCard selectedCard;
 
-            foreach (SCard card in hand)
+            if (counter >= 19) key = true;
+
+            if (!key && counter <= 8)
             {
-                if (card.Suit != MTable.GetTrump().Suit && card.Rank < 9)
-                {
-                    table.Add(new SCardPair(card));
-                    hand.Remove(card);
-                    return true;
-                }
+                Console.WriteLine($"False. Counter: {counter} <= 8");
+                return false;
             }
+
+            if (!key && (counter <= 20 || hand.Count <= 10))
+            {
+                foreach (SCard card in hand)
+                {
+                    if (card.Suit != MTable.GetTrump().Suit)
+                    {
+                        validCards.Add(card);
+                    }
+                }
+                selectedCard = MinCurrentCard(validCards);
+                table.Add(new SCardPair(selectedCard));
+                hand.Remove(selectedCard);
+                return true;
+            }
+
+            selectedCard = MinCurrentCard(hand);
+            if (selectedCard.Rank != 0)
+            {
+                table.Add(new SCardPair(selectedCard));
+                hand.Remove(selectedCard);
+                return true;
+            }
+            
             return false;
         }
 
@@ -120,7 +143,7 @@
             Console.WriteLine();
         }
 
-        private SCard MinCurrentCard (List <SCard> cards)
+        private SCard MinCurrentCard(List<SCard> cards)
         {
             List<SCard> selectedList = cards.ToList();
             int minRank = 15;

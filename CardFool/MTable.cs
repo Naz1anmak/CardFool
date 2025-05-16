@@ -70,7 +70,6 @@
     public enum EndGame { First, Second, Draw };
     public enum Suits { Hearts, Diamonds, Clubs, Spades };   // черви, бубны, крести, пики
 
-
     internal class MTable
     {
         // Количество карт на руке при раздаче
@@ -346,7 +345,6 @@
                 }
             }
         }
-
 
         public static void ShowCard(SCard card)
         {
