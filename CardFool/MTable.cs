@@ -91,11 +91,23 @@
             Initialize();
 
             res = Play(true);
-            Console.WriteLine(res);
+            Console.WriteLine("    =====================");
+            Console.WriteLine("          Результат");
+            Console.WriteLine("\u2665\uFE0F".PadLeft(10) + "\u2663\uFE0F".PadLeft(5)
+            + "\u2666\uFE0F".PadLeft(5) + "\u2660\uFE0F".PadLeft(5));
             if (res == EndGame.First)
-                Console.WriteLine("Winner " + player1.GetName());
+            {
+                Console.WriteLine("      Победитель: " + player1.GetName());
+            }
             else if (res == EndGame.Second)
-                Console.WriteLine("Winner " + player2.GetName());
+            {
+                Console.WriteLine("      Победитель: " + player2.GetName());
+            }
+            else
+            {
+                Console.WriteLine("Игра завершилась вничью!");
+            }
+            Console.WriteLine("    =====================");
 
         }
         // Настройка игры
@@ -133,11 +145,13 @@
             }
             // формирование козыря
             trump = deck[deck.Count - 1];
-            Console.Write("Козырь "); ShowCard(trump);
+            Console.Write("\n          Козырь "); ShowCard(trump);
 
             //***********************************
             Console.WriteLine();
+            Console.Write(" ".PadLeft(9));
             player1.ShowHand();
+            Console.Write(" ".PadLeft(9));
             player2.ShowHand();
             Console.WriteLine();
 
@@ -174,8 +188,16 @@
                 }
 
                 //************************
-                Console.WriteLine("Делаем ход");
-                ShowTable(table);
+                if (playerFirst)
+                {
+                    Console.WriteLine(" Первым ходит " + player1.GetName());
+                    ShowTable(table);
+                }
+                else
+                {
+                    Console.WriteLine(" Первым ходит " + player2.GetName());
+                    ShowTable(table);
+                }
 
                 // ==== Начало хода ====
                 // процесс защиты и подкидывания карт
@@ -186,13 +208,22 @@
                         // второй игрок отбивается
                         defend = player2.Defend(table);
                         //************************
-                        Console.WriteLine("Отбивается " + player2.GetName());
+                        Console.WriteLine(" Отбивается " + player2.GetName());
                         ShowTable(table);
                         // игрок подкидывает
                         added = player1.AddCards(table);
                         //************************
-                        Console.WriteLine("Подкидывает " + player1.GetName() + "  " + added);
-                        ShowTable(table);
+                        if (added)
+                        {
+                            Console.WriteLine(" Подкидывает " + player1.GetName());
+                            ShowTable(table);
+
+                        }
+                        else
+                        {
+                            Console.WriteLine(player1.GetName() + " не подкидывает");
+                            Console.WriteLine("    *    *    *");
+                        }
 
                         // если не отбился, то принимает
                         if (!defend)
@@ -218,13 +249,21 @@
                         // первый игрок отбивается
                         defend = player1.Defend(table);
                         //************************
-                        Console.WriteLine("Отбивается " + player1.GetName());
+                        Console.WriteLine(" Отбивается " + player1.GetName());
                         ShowTable(table);
                         // игрок подкидывает
                         added = player2.AddCards(table);
                         //************************
-                        Console.WriteLine("Подкидывает " + player2.GetName() + "  " + added);
-                        ShowTable(table);
+                        if (added)
+                        {
+                            Console.WriteLine(" Подкидывает " + player2.GetName());
+                            ShowTable(table);
+                        }
+                        else
+                        {
+                            Console.WriteLine(player2.GetName() + " не подкидывает");
+                            Console.WriteLine("    *    *    *");
+                        }
 
                         // если не отбился, то принимает
                         if (!defend)
@@ -266,8 +305,11 @@
 
                 //***********************************
                 Console.WriteLine();
+                Console.Write(" ".PadLeft(9));
                 player1.ShowHand();
+                Console.Write(" ".PadLeft(9));
                 player2.ShowHand();
+                Console.WriteLine();
                 if (pause) Console.ReadLine();
 
                 // Если конец игры, то выходим
@@ -354,16 +396,16 @@
             switch (card.Suit)
             {
                 case Suits.Hearts:
-                    msg = "ч";
+                    msg = "\u2665\uFE0F" + "к";
                     break;
                 case Suits.Diamonds:
-                    msg = "б";
+                    msg = "\u2666\uFE0F" + "б";
                     break;
                 case Suits.Clubs:
-                    msg = "к";
+                    msg = "\u2663\uFE0F" + "к";
                     break;
                 case Suits.Spades:
-                    msg = "п";
+                    msg = "\u2660\uFE0F" + "п";
                     break;
             }
             switch (card.Rank)
@@ -404,14 +446,18 @@
             foreach (SCardPair pair in table)
             {
                 if (pair.Beaten) ShowCard(pair.Up);
-                else Console.Write("  ");
+                else Console.Write("   ");
+                Console.ForegroundColor = ConsoleColor.Black;
                 Console.Write(Separator);
+                Console.ForegroundColor = ConsoleColor.White;
             }
             Console.WriteLine();
             foreach (SCardPair pair in table)
             {
                 ShowCard(pair.Down);
+                Console.ForegroundColor = ConsoleColor.Black;
                 Console.Write(Separator);
+                Console.ForegroundColor = ConsoleColor.White;
             }
             Console.WriteLine();
             if (pause) Console.ReadLine();
