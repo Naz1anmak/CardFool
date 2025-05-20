@@ -1,44 +1,56 @@
-﻿namespace CardFool
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CardFool
 {
-    public struct SCard     // карта
+    public struct SCard // карта
     {
-        private Suits _suit;    // масть, от 0 до 3
-        private int _rank;    // величина, от 6 до 14
+        private Suits _suit; // масть, от 0 до 3
+        private int _rank; // величина, от 6 до 14
 
         public SCard(Suits suit, int rank)
         {
             _suit = suit;
             _rank = rank;
         }
+
         public Suits Suit
         {
             get { return _suit; }
         }
+
         public int Rank
         {
             get { return _rank; }
         }
     }
+
     // Пара карт на столе
     public struct SCardPair
     {
-        private SCard _down;    // карта снизу
-        private SCard _up;      // карта сверху
-        private bool _beaten;   // признак бита карта или нет
+        private SCard _down; // карта снизу
+        private SCard _up; // карта сверху
+        private bool _beaten; // признак бита карта или нет
 
         public SCard Down
         {
             get { return _down; }
-            set { _down = value; _beaten = false; }
+            set
+            {
+                _down = value;
+                _beaten = false;
+            }
         }
+
         public bool Beaten
         {
             get { return _beaten; }
         }
+
         public SCard Up
         {
             get { return _up; }
         }
+
         public bool SetUp(SCard up, Suits trump)
         {
             if (_down.Suit == up.Suit)
@@ -56,6 +68,7 @@
                 _beaten = true;
                 return true;
             }
+
             return false;
         }
 
@@ -66,24 +79,39 @@
             _beaten = false;
         }
     }
+
     // Результат игры
-    public enum EndGame { First, Second, Draw };
-    public enum Suits { Hearts, Diamonds, Clubs, Spades };   // черви, бубны, крести, пики
+    public enum EndGame
+    {
+        First,
+        Second,
+        Draw
+    };
+
+    public enum Suits
+    {
+        Hearts,
+        Diamonds,
+        Clubs,
+        Spades
+    }; // черви, бубны, крести, пики
 
     internal class MTable
     {
         // Количество карт на руке при раздаче
         public const int TotalCards = 6;
+
         public const string Separator = " | ";
+
         // Колода карт в прикупе
         private static List<SCard> deck = new List<SCard>();
-        private static MPlayer1 player1;        // игрок 1
-        private static MPlayer2 player2;        // игрок 2
+        private static MPlayer1 player1; // игрок 1
+        private static MPlayer2 player2; // игрок 2
         private static List<SCard> plHand1 = new List<SCard>();
         private static List<SCard> plHand2 = new List<SCard>();
-        private static SCard trump;             // козырь
-        private static List<SCardPair> table;   // карты на столе
-        private static bool pause = false;
+        private static SCard trump; // козырь
+        private static List<SCardPair> table; // карты на столе
+
         static void Main(string[] args)
         {
             EndGame res;
@@ -94,7 +122,7 @@
             Console.WriteLine("    =====================");
             Console.WriteLine("          Результат");
             Console.WriteLine("\u2665\uFE0F".PadLeft(10) + "\u2663\uFE0F".PadLeft(5)
-            + "\u2666\uFE0F".PadLeft(5) + "\u2660\uFE0F".PadLeft(5));
+                                                         + "\u2666\uFE0F".PadLeft(5) + "\u2660\uFE0F".PadLeft(5));
             if (res == EndGame.First)
             {
                 Console.WriteLine("      Победитель: " + player1.GetName());
@@ -107,9 +135,10 @@
             {
                 Console.WriteLine("Игра завершилась вничью!");
             }
-            Console.WriteLine("    =====================");
 
+            Console.WriteLine("    =====================");
         }
+
         // Настройка игры
         private static void Initialize()
         {
@@ -118,11 +147,12 @@
 
             // создаем полную колоду карт
             for (int c = 0; c <= 3; c++)
-                for (int d = 6; d <= 14; d++)
-                {
-                    SCard card = new SCard((Suits)c, d);
-                    temp.Add(card);
-                }
+            for (int d = 6; d <= 14; d++)
+            {
+                SCard card = new SCard((Suits)c, d);
+                temp.Add(card);
+            }
+
             // формирование прикупа - перемешиваем карты
             for (int c = 0; c < 4 * 9; c++)
             {
@@ -138,14 +168,18 @@
             // раздача карт первому и второму игроку
             for (int c = 0; c < TotalCards; c++)
             {
-                player1.AddToHand(deck[0]); plHand1.Add(deck[0]);
+                player1.AddToHand(deck[0]);
+                plHand1.Add(deck[0]);
                 deck.RemoveAt(0);
-                player2.AddToHand(deck[0]); plHand2.Add(deck[0]);
+                player2.AddToHand(deck[0]);
+                plHand2.Add(deck[0]);
                 deck.RemoveAt(0);
             }
+
             // формирование козыря
             trump = deck[deck.Count - 1];
-            Console.Write("\n          Козырь "); ShowCard(trump);
+            Console.Write("\n         Козырь ");
+            ShowCard(trump);
 
             //***********************************
             Console.WriteLine();
@@ -154,19 +188,19 @@
             Console.Write(" ".PadLeft(9));
             player2.ShowHand();
             Console.WriteLine();
-
         }
+
         // Козырь
         public static SCard GetTrump()
         {
             return trump;
         }
+
         // Процесс игры
-        public static EndGame Play(bool first)
+        private static EndGame Play(bool first)
         {
             bool playerFirst = true;
             bool defend, added = true;
-            List<SCardPair> tempTable = new List<SCardPair>();
 
             // процесс игры
             while (true)
@@ -208,8 +242,17 @@
                         // второй игрок отбивается
                         defend = player2.Defend(table);
                         //************************
-                        Console.WriteLine(" Отбивается " + player2.GetName());
-                        ShowTable(table);
+                        if (defend)
+                        {
+                            Console.WriteLine(" Отбивается " + player2.GetName());
+                            ShowTable(table);
+                        }
+                        else
+                        {
+                            Console.WriteLine(player2.GetName() + " не может отбиться");
+                            Console.WriteLine();
+                        }
+
                         // игрок подкидывает
                         added = player1.AddCards(table);
                         //************************
@@ -217,12 +260,11 @@
                         {
                             Console.WriteLine(" Подкидывает " + player1.GetName());
                             ShowTable(table);
-
                         }
                         else
                         {
-                            Console.WriteLine(player1.GetName() + " не подкидывает");
-                            Console.WriteLine("    *    *    *");
+                            Console.WriteLine(" " + player1.GetName() + " не подкидывает");
+                            Console.WriteLine("     *    *    *");
                         }
 
                         // если не отбился, то принимает
@@ -237,10 +279,13 @@
                                     player2.AddToHand(table[0].Up);
                                     plHand2.Add(table[0].Up);
                                 }
+
                                 table.RemoveAt(0);
                             }
-                            break;          // окончание хода
+
+                            break; // окончание хода
                         }
+
                         // если не подкинули, то окончание хода
                         if (!added) break;
                     }
@@ -249,8 +294,17 @@
                         // первый игрок отбивается
                         defend = player1.Defend(table);
                         //************************
-                        Console.WriteLine(" Отбивается " + player1.GetName());
-                        ShowTable(table);
+                        if (defend)
+                        {
+                            Console.WriteLine(" Отбивается " + player1.GetName());
+                            ShowTable(table);
+                        }
+                        else
+                        {
+                            Console.WriteLine(player1.GetName() + " не может отбиться");
+                            Console.WriteLine();
+                        }
+
                         // игрок подкидывает
                         added = player2.AddCards(table);
                         //************************
@@ -261,8 +315,8 @@
                         }
                         else
                         {
-                            Console.WriteLine(player2.GetName() + " не подкидывает");
-                            Console.WriteLine("    *    *    *");
+                            Console.WriteLine(" " + player2.GetName() + " не подкидывает");
+                            Console.WriteLine("     *    *    *");
                         }
 
                         // если не отбился, то принимает
@@ -277,10 +331,13 @@
                                     player1.AddToHand(table[0].Up);
                                     plHand1.Add(table[0].Up);
                                 }
+
                                 table.RemoveAt(0);
                             }
-                            break;          // окончание хода
+
+                            break; // окончание хода
                         }
+
                         // если не подкинули, то окончание хода
                         if (!added) break;
                     }
@@ -310,15 +367,14 @@
                 Console.Write(" ".PadLeft(9));
                 player2.ShowHand();
                 Console.WriteLine();
-                if (pause) Console.ReadLine();
 
                 // Если конец игры, то выходим
                 if (player1.GetCount() == 0 && player2.GetCount() == 0) return EndGame.Draw;
                 else if (player1.GetCount() == 0) return EndGame.First;
                 else if (player2.GetCount() == 0) return EndGame.Second;
             }
-
         }
+
         // Добавляем карты из колоды первому и второму игроку
         private static void AddCards(bool first)
         {
@@ -332,6 +388,7 @@
                     plHand1.Add(deck[0]);
                     deck.RemoveAt(0);
                 }
+
                 // добавляем второму игроку
                 while (player2.GetCount() < TotalCards && deck.Count > 0)
                 {
@@ -349,6 +406,7 @@
                     plHand2.Add(deck[0]);
                     deck.RemoveAt(0);
                 }
+
                 // добавляем первому игроку
                 while (player1.GetCount() < TotalCards && deck.Count > 0)
                 {
@@ -396,7 +454,7 @@
             switch (card.Suit)
             {
                 case Suits.Hearts:
-                    msg = "\u2665\uFE0F" + "к";
+                    msg = "\u2665\uFE0F" + "ч";
                     break;
                 case Suits.Diamonds:
                     msg = "\u2666\uFE0F" + "б";
@@ -408,6 +466,7 @@
                     msg = "\u2660\uFE0F" + "п";
                     break;
             }
+
             switch (card.Rank)
             {
                 case 6:
@@ -423,7 +482,7 @@
                     msg += "9";
                     break;
                 case 10:
-                    msg += "0";
+                    msg += "10";
                     break;
                 case 11:
                     msg += "В";
@@ -438,30 +497,32 @@
                     msg += "Т";
                     break;
             }
+
             Console.Write(msg);
             Console.ForegroundColor = ConsoleColor.White;
         }
+
         public static void ShowTable(List<SCardPair> table)
         {
             foreach (SCardPair pair in table)
             {
                 if (pair.Beaten) ShowCard(pair.Up);
-                else Console.Write("   ");
+                else Console.Write("    ");
                 Console.ForegroundColor = ConsoleColor.Black;
-                Console.Write(Separator);
+                Console.Write(pair.Up.Rank == 10 ? "| " : Separator);
                 Console.ForegroundColor = ConsoleColor.White;
             }
+
             Console.WriteLine();
             foreach (SCardPair pair in table)
             {
                 ShowCard(pair.Down);
                 Console.ForegroundColor = ConsoleColor.Black;
-                Console.Write(Separator);
+                Console.Write(pair.Down.Rank == 10 ? "| " : Separator);
                 Console.ForegroundColor = ConsoleColor.White;
             }
-            Console.WriteLine();
-            if (pause) Console.ReadLine();
-        }
 
+            Console.WriteLine();
+        }
     }
 }
